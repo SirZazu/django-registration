@@ -285,6 +285,10 @@ class RegistrationProfile(models.Model):
             If supplied will be passed to the template for better
             flexibility via ``RequestContext``.
         """
+        template_txt = getattr(settings, 'REGISTRATION_EMAIL_TEMPLATE_TXT',
+                               'registration/activation_email.txt')
+        template_html = getattr(settings, 'REGISTRATION_EMAIL_TEMPLATE_HTML',
+                                'registration/activation_email.html')
         ctx_dict = {}
         if request is not None:
             ctx_dict = RequestContext(request, ctx_dict)
@@ -305,16 +309,14 @@ class RegistrationProfile(models.Model):
         subject = ''.join(subject.splitlines())
         from_email = getattr(settings, 'REGISTRATION_DEFAULT_FROM_EMAIL',
                              settings.DEFAULT_FROM_EMAIL)
-        message_txt = render_to_string('registration/activation_email.txt',
-                                       ctx_dict)
+        message_txt = render_to_string(template_txt, ctx_dict)
 
         email_message = EmailMultiAlternatives(subject, message_txt,
                                                from_email, [self.user.email])
 
         if getattr(settings, 'REGISTRATION_EMAIL_HTML', True):
             try:
-                message_html = render_to_string(
-                    'registration/activation_email.html', ctx_dict)
+                message_html = render_to_string(template_html, ctx_dict)
             except TemplateDoesNotExist:
                 pass
             else:
